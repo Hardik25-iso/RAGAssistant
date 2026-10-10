@@ -1,0 +1,24 @@
+# Cloud security aspects: where each one is implemented
+
+| # | Aspect | Implementation | Evidence |
+|---|---|---|---|
+| 1 | Network isolation | RDS private (`sg-rds` allows 5432 only from `sg-ec2`). EC2 port 80 only from `sg-alb`. ALB only from the CloudFront prefix list, plus a secret-header listener rule. No port 22 (Session Manager instead). | SG screenshots; `curl http://<ALB-DNS>` → 403 |
+| 2 | Encryption in transit | HTTPS at CloudFront (HTTP→HTTPS redirect, HSTS). S3 bucket policy denies non-TLS requests. RDS `sslmode=require`. Groq/Gemini over HTTPS. | `deploy/aws/s3_bucket_policy.json`, `deploy/nginx/nginx.conf` |
+| 3 | Encryption at rest | S3 SSE-KMS (and a policy that rejects unencrypted PUTs). RDS storage encryption. Encrypted EBS volumes. SSM SecureStrings. | `app/aws/s3_storage.py` (`ServerSideEncryption="aws:kms"`) |
+| 4 | IAM and least privilege | EC2 instance role with no access keys, limited to `users/*` in one bucket, `/studyrag/*` parameters and its own log group. GitHub deploys through OIDC (no stored AWS keys), may only `SendCommand` to instances tagged `App=studyrag`. MFA for humans. | `deploy/aws/*.json` |
+| 5 | Secrets management | All secrets in Parameter Store, loaded at startup (`app/aws/ssm_config.py`). `.env` is gitignored. GitHub secret scanning + push protection. | `.gitignore`, SSM screenshot |
+| 6 | Authentication | bcrypt (cost 12). JWT HS256 with the algorithm pinned, 30-minute access tokens and 7-day refresh tokens, token type checked. Generic login errors with a timing-safe dummy hash. Password rules. | `app/security/{password,jwt_handler}.py`, `tests/test_auth.py` |
+| 7 | Authorization and data isolation | RBAC (`require_student`, `require_admin`). Every query is filtered by `owner_id`; another user's resources return **404** (existence not revealed). The vector search applies `WHERE owner_id = :me` before ranking. Random UUID ids. Per-user S3 prefixes. 5-minute presigned links. Admins see statistics only, never content. | `app/rag/vector_store.py`, `tests/test_security.py::test_student_isolation` |
+| 8 | Upload security | File type checked from the file's first bytes, and it must match the extension. `.ppt` (OLE) is rejected. 20 MB cap (enforced in Nginx and the API). PPTX zip-bomb checks (ratio, total size, entry count, path traversal). Filenames sanitised. Stored under random UUID keys. Per-user document and storage quotas. | `app/security/file_validator.py`, 7 tests |
+| 9 | API protection | Rate limits per user and per IP (slowapi) plus an Nginx edge limit. Strict CORS. Pydantic validation with size limits. Security headers (CSP, X-Frame-Options, nosniff, HSTS, Referrer-Policy, Permissions-Policy). JSON errors with a request id and no stack traces. | `app/security/{rate_limiter,headers}.py`, `app/errors.py` |
+| 10 | LLM security | Prompt-injection guard (override, prompt extraction, cross-user, role hijack, template injection; Unicode normalised). Retrieved text wrapped in `<source>` tags and treated as data. Answers come only from context. Markdown rendered without raw HTML. Blocked attempts are audited. Cross-user retrieval is impossible because of the SQL filter. | `app/rag/{prompt_guard,prompts}.py` |
+| 11 | Logging and monitoring | `audit_logs` table (login success/failure, upload, download, delete, query, blocked prompt) shown on the admin dashboard. Container logs go to CloudWatch through the `awslogs` driver. CloudWatch alarms. CloudTrail. | Admin page, CloudWatch screenshots |
+| 12 | Cost and abuse control | AWS Budget alert. Per-user limits (50 docs, 300 MB, 200 questions/day, 30 subjects). Rate limits. 1500 chunks per document. | `app/config.py` |
+| 13 | Instance and container hardening | IMDSv2 required. Ubuntu unattended security upgrades. Containers run as non-root users with a read-only root filesystem, `no-new-privileges` and all Linux capabilities dropped, plus memory limits. Images built in CI. | `deploy/docker-compose.prod.yml`, Dockerfiles |
+| + | Availability and resilience | ALB across 2 AZs with health checks. Rolling zero-downtime deploys. Retries with backoff for AI providers, Groq → Gemini failover, 503 with `Retry-After`. Daily `pg_dump` to S3 plus RDS automated backups. | `docs/LOAD_TEST.md` |
+
+## Known limitations (state these in the report)
+- CloudFront → ALB traffic is HTTP. It is restricted to CloudFront's IP ranges and needs the secret header, but it is not TLS. Fix: a custom domain with an ACM certificate on the ALB.
+- Rate-limit counters are kept in memory for each instance and worker. Fix: Redis (ElastiCache).
+- Tokens are kept in `sessionStorage`. The strict CSP reduces XSS risk. Fix: httpOnly cookies with CSRF tokens.
+- The prompt-injection guard is pattern-based. The real guarantee is the data isolation enforced by the SQL filter.

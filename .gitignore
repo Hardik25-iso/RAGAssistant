@@ -1,0 +1,28 @@
+# secrets
+.env
+*.pem
+*.key
+deploy/.deploy-env
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.db
+backend/data/
+
+# node
+node_modules/
+frontend/dist/
+
+# load test output
+results/
+
+# os / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

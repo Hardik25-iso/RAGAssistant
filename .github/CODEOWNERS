@@ -1,0 +1,28 @@
+# Replace the @handles with your team's GitHub usernames.
+# M1 = frontend, M2 = backend core, M3 = RAG/AI, M4 = AWS/DevOps/security
+
+/frontend/                       @M1-github-username
+/docs/screenshots/               @M1-github-username
+
+/backend/app/main.py             @M2-github-username
+/backend/app/config.py           @M2-github-username
+/backend/app/database.py         @M2-github-username
+/backend/app/errors.py           @M2-github-username
+/backend/app/models/             @M2-github-username
+/backend/app/schemas/            @M2-github-username
+/backend/app/routers/            @M2-github-username
+/backend/tests/test_auth.py      @M2-github-username
+
+/backend/app/rag/                @M3-github-username
+/backend/app/routers/chat.py     @M3-github-username
+/backend/tests/test_rag.py       @M3-github-username
+
+/backend/app/security/           @M4-github-username
+/backend/app/aws/                @M4-github-username
+/backend/tests/test_security.py  @M4-github-username
+/backend/Dockerfile              @M4-github-username
+/backend/gunicorn.conf.py        @M4-github-username
+/deploy/                         @M4-github-username
+/.github/                        @M4-github-username
+/docker-compose.yml              @M4-github-username
+/README.md                       @M4-github-username

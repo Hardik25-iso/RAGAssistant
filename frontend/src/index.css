@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-font-smoothing: antialiased; }
+  body { @apply bg-paper text-ink font-sans; }
+  :focus-visible { @apply outline-none ring-2 ring-accent/40 ring-offset-1 ring-offset-paper; }
+}
+
+@layer components {
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-md px-3.5 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed; }
+  .btn-primary { @apply btn bg-accent text-white hover:bg-accent-strong; }
+  .btn-ghost { @apply btn text-ink-soft hover:bg-black/5; }
+  .btn-danger { @apply btn text-bad hover:bg-bad-soft; }
+  .input { @apply w-full rounded-md border border-line bg-white px-3 py-2 text-sm placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20; }
+  .card { @apply rounded-lg border border-line bg-white shadow-card; }
+  .label { @apply mb-1 block text-xs font-medium uppercase tracking-wide text-ink-soft; }
+  .chip { @apply inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-mono text-[11px]; }
+}
+
+/* Markdown answers */
+.prose-answer { @apply text-[15px] leading-relaxed text-ink; }
+.prose-answer p { @apply my-2; }
+.prose-answer h1, .prose-answer h2, .prose-answer h3 { @apply mt-4 mb-1.5 font-semibold; }
+.prose-answer h1 { @apply text-lg; } .prose-answer h2 { @apply text-base; } .prose-answer h3 { @apply text-[15px]; }
+.prose-answer ul { @apply my-2 list-disc pl-5; } .prose-answer ol { @apply my-2 list-decimal pl-5; }
+.prose-answer li { @apply my-0.5; }
+.prose-answer code { @apply rounded bg-paper px-1 font-mono text-[13px]; }
+.prose-answer pre { @apply my-2 overflow-x-auto rounded-md bg-ink p-3 text-[13px] text-white; }
+.prose-answer pre code { @apply bg-transparent p-0; }
+.prose-answer table { @apply my-3 w-full border-collapse text-sm; }
+.prose-answer th, .prose-answer td { @apply border border-line px-2 py-1 text-left align-top; }
+.prose-answer th { @apply bg-paper font-semibold; }
+.prose-answer strong { @apply font-semibold; }

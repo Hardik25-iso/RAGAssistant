@@ -1,0 +1,45 @@
+# Production on each EC2 instance (behind the ALB).
+# Images are built by GitHub Actions and pulled from GHCR; nothing is built on the t3.micro.
+# Secrets are NOT here: the backend reads them from SSM Parameter Store with the instance role.
+# /opt/studyrag/.env (written by setup_ec2.sh) holds only non-secret settings.
+x-logging: &cloudwatch
+  driver: awslogs
+  options:
+    awslogs-region: ${AWS_REGION:-ap-south-1}
+    awslogs-group: /studyrag/app
+    awslogs-create-group: "true"
+    awslogs-stream: "${INSTANCE_ID:-local}-{{.Name}}"
+
+services:
+  backend:
+    image: ghcr.io/${GHCR_OWNER}/studyrag-backend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file: /opt/studyrag/.env
+    environment:
+      USE_SSM: "true"
+      STORAGE_BACKEND: s3
+      ENVIRONMENT: production
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    mem_limit: 700m
+    logging: *cloudwatch
+
+  web:
+    image: ghcr.io/${GHCR_OWNER}/studyrag-web:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "80:8080"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    mem_limit: 128m
+    depends_on:
+      - backend
+    logging: *cloudwatch
