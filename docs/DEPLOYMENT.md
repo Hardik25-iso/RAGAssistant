@@ -28,11 +28,12 @@ an AWS-managed certificate, and you don't need to buy a domain.
 - Gemini: aistudio.google.com → Get API key (used for embeddings and as the backup LLM).
 
 ## 3. Security groups (EC2 → Security Groups, default VPC)
+AWS rejects group names starting with `sg-`, so they are named `studyrag-*`.
 | Name | Inbound rule | Why |
 |---|---|---|
-| `sg-alb` | HTTP 80 from **prefix list** `com.amazonaws.global.cloudfront.origin-facing` | Only CloudFront can reach the ALB |
-| `sg-ec2` | HTTP 80 from `sg-alb` (+ **temporarily** HTTP 80 from *My IP* for the "before" test) | Instances aren't reachable from the internet |
-| `sg-rds` | PostgreSQL 5432 from `sg-ec2` | Only the app can reach the database |
+| `studyrag-alb` | HTTP 80 from **prefix list** `com.amazonaws.global.cloudfront.origin-facing` | Only CloudFront can reach the ALB |
+| `studyrag-ec2` | HTTP 80 from `studyrag-alb` (+ **temporarily** HTTP 80 from *My IP* for the "before" test) | Instances aren't reachable from the internet |
+| `studyrag-rds` | PostgreSQL 5432 from `studyrag-ec2` | Only the app can reach the database |
 
 There is no SSH (port 22) rule anywhere. Use **Session Manager** for shell access. 📸
 
@@ -46,7 +47,7 @@ There is no SSH (port 22) rule anywhere. Use **Session Manager** for shell acces
 Create database → Standard create → PostgreSQL **16** → template *Free tier*.
 - `db.t4g.micro`, 20 GB gp3, **storage encryption on**, initial database name `studyrag`.
 - Master username `studyrag`, a strong password (Secrets Manager option: off; we use Parameter Store).
-- Public access **No**, security group **sg-rds**, automated backups 7 days.
+- Public access **No**, security group **studyrag-rds**, automated backups 7 days.
 - The app runs `CREATE EXTENSION vector` itself on first start. RDS for PostgreSQL 16 forces SSL by default. 📸
 
 ## 6. Secrets in Parameter Store (Systems Manager → Parameter Store)
@@ -83,7 +84,7 @@ IAM → Roles → Create → trusted entity **EC2**. Attach:
 Launch instance:
 - Name `studyrag-1`, tag **`App = studyrag`**. Ubuntu Server 24.04, `t3.micro`, no key pair.
 - Network: default VPC, subnet in **ap-south-1a**, auto-assign public IP on (needed for outbound calls to Groq,
-  Gemini and GHCR), security group **sg-ec2**.
+  Gemini and GHCR), security group **studyrag-ec2**.
 - Storage: 30 GB gp3, **Encrypted**.
 - Advanced → IAM instance profile **StudyRagEc2Role**.
 - Advanced → Metadata: **IMDSv2 required**, **hop limit 2** (containers need the extra hop to get role credentials).
@@ -110,7 +111,7 @@ choose subnet **ap-south-1b**. Check that the role, metadata settings, tag and u
 ## 11. Target group + Application Load Balancer
 1. Target group `tg-studyrag`: type Instances, HTTP 80. Health check `/api/health`, interval **10 s**, timeout 5 s,
    healthy 2, unhealthy 2, success code 200. Register both instances. Under Attributes, set deregistration delay to 30 s.
-2. Load balancer `alb-studyrag`: internet-facing, subnets in 1a and 1b, security group **sg-alb**.
+2. Load balancer `alb-studyrag`: internet-facing, subnets in 1a and 1b, security group **studyrag-alb**.
    - Listener HTTP:80, **default action: fixed response 403**.
    - Add a listener rule: *HTTP header* `X-Origin-Verify` equals `<long random secret>` → forward to `tg-studyrag`.
    - Attributes → idle timeout **120 s**.
@@ -128,7 +129,7 @@ choose subnet **ap-south-1b**. Check that the role, metadata settings, tag and u
 Your deployment link is `https://dxxxxxxxx.cloudfront.net` (API docs at `/api/docs`). 📸
 
 Then lock everything down:
-- `sg-ec2`: delete the temporary *My IP* rule.
+- `studyrag-ec2`: delete the temporary *My IP* rule.
 - Release the Elastic IP (idle Elastic IPs cost money).
 - Set the allowed origin on both instances, then redeploy:
   `sudo sed -i 's#^CORS_ORIGINS=.*#CORS_ORIGINS=https://dxxxx.cloudfront.net#' /opt/studyrag/.env && sudo bash /opt/studyrag/deploy/scripts/deploy.sh`
