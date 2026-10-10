@@ -102,6 +102,11 @@ class Student(HttpUser):
 
     def on_start(self):
         self.client.headers.update(EXTRA)
+        # All simulated users run from one laptop. Give each its own client IP so the
+        # Nginx per-IP edge limit sees 50 students on 50 IPs (like real traffic)
+        # instead of one IP. Nginx takes the first X-Forwarded-For entry; CloudFront
+        # and the ALB append theirs after it.
+        self.client.headers["X-Forwarded-For"] = f"10.{random.randint(0, 255)}.{random.randint(0, 255)}.{random.randint(1, 254)}"
         self.client.headers["Authorization"] = f"Bearer {SHARED['token']}"
         self.sid = SHARED["subject_id"]
         self.session_id = None

@@ -25,13 +25,16 @@ instance (SSM Session Manager → `sudo -i`):
 ```bash
 cat >> /opt/studyrag/.env <<'EOF'
 RATE_LIMIT_ENABLED=false
+MAX_QUERIES_PER_DAY=1000000
 LLM_PROVIDER=fake
 EMBEDDINGS_PROVIDER=fake
 EOF
 bash /opt/studyrag/deploy/scripts/deploy.sh
 ```
 
-Afterwards, delete those three lines, run `deploy.sh` again, and delete the "LoadTest" subject in the UI.
+Afterwards, delete those four lines, run `deploy.sh` again, and delete the "LoadTest" subject in the UI.
+Locust gives each simulated user its own `X-Forwarded-For` IP, so the Nginx per-IP edge limit
+(20 req/s) behaves as it would for 50 real students instead of throttling one laptop.
 Say this in the report: the AI calls were stubbed so the numbers measure the cloud setup (database, compute,
 load balancing), not Groq's latency.
 
