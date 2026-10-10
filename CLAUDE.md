@@ -26,13 +26,22 @@ DONE and verified in a sandbox:
 - Nginx config passes `nginx -t`. A Locust smoke test ran against Gunicorn + Postgres with 0 errors.
 - Deploy scripts, IAM policies, workflows and docs are written.
 
-NOT DONE (next steps, in order):
-1. `git remote add origin` and push to GitHub (public repo). Fill in `.github/CODEOWNERS` handles.
-2. ~~Docker build~~ DONE 10 Oct: images build; fixed an init_db race between Gunicorn workers on a fresh DB.
-3. ~~Real keys~~ DONE 10 Oct: real DBMS deck (157 slides) ingested, answers cite correct slides. Gemini free tier rate-limits embeddings (~100 texts/min), so ingestion now uses small batches and waits out 429s (`EMBED_BATCH_SIZE`, `EMBED_INGEST_BUDGET_SECONDS`). A large deck can take 1-2 min to reach `ready`.
-4. AWS deployment: follow `docs/DEPLOYMENT.md` step by step. Run the "before" tests after step 9 and the "after" tests after step 12 (`docs/LOAD_TEST.md`).
-5. Fill the results table in `docs/LOAD_TEST.md` and generate the chart with `deploy/loadtest/compare.py`.
-6. Write the report in the college format (outline is in the roadmap §11; security table in `docs/SECURITY.md`). Collect AWS console screenshots (marked 📸 in DEPLOYMENT.md).
+DONE 10 Oct 2026 (real AWS, account 280793168839, ap-south-1):
+- Repo github.com/Hardik25-iso/RAGAssistant (public). Commits carry no Claude attribution (user's rule).
+- Docker build fixed (init_db race), real Groq/Gemini tested, Gemini ingestion pacing added.
+- AWS built by CLI (user `studyrag-admin`): SGs `studyrag-alb/ec2/rds` (AWS forbids `sg-` names), S3 `studyrag-docs-280793168839`,
+  RDS `studyrag-db` (pg 16.15, db.t4g.micro), SSM `/studyrag/*`, `StudyRagEc2Role`, OIDC + `StudyRagGithubDeploy`,
+  EC2 `studyrag-1` (1a) + `studyrag-2` (1b), TG `tg-studyrag`, ALB `alb-studyrag` (403 unless `X-Origin-Verify` header).
+- CI/CD verified: push → CI → Deploy (OIDC, immutable-subject trust) → rolling SSM deploy to both instances.
+- All before/after experiments run; results in `docs/LOAD_TEST.md` + `docs/results/`. Fixed a threadpool/pool deadlock found at 150 users.
+
+NOT DONE:
+1. CloudFront: blocked until AWS verifies the account (user opened/needs to open a support case). Then create the
+   distribution (origin = ALB, header `X-Origin-Verify` = value in the ALB listener rule), remove the temporary
+   my-IP rule on `studyrag-alb`, set CORS_ORIGINS on both instances. Fallback if not verified by 14 Oct: open
+   `studyrag-alb` to 0.0.0.0/0 on port 80 and serve over plain HTTP.
+2. CloudWatch alarms + SNS email (step 14), branch protection on `main`, CODEOWNERS handles, delete root access key.
+3. Report + 📸 screenshots. After evaluation: teardown (DEPLOYMENT.md step 16) to stop using credits (~$2/day).
 
 ## Commands
 ```bash
