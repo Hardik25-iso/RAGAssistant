@@ -29,6 +29,12 @@ def get_current_user(
     except jwt.PyJWTError:
         raise _UNAUTHORIZED from None
     user = db.get(User, payload["sub"])
+    # End the read transaction so the pooled connection is returned now. FastAPI runs
+    # this dependency and the endpoint in separate threadpool hops; holding a connection
+    # between them deadlocks under load (all threads wait for a connection while the
+    # holders wait for a thread) until the 30 s pool timeout. expire_on_commit=False
+    # keeps `user` usable.
+    db.commit()
     if user is None:
         raise _UNAUTHORIZED
     request.state.user_id = user.id  # used by rate limiter + audit log
