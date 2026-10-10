@@ -3,6 +3,7 @@ import logging
 from collections.abc import Iterator
 
 from sqlalchemy import create_engine, text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from app.config import get_settings
@@ -49,16 +50,15 @@ def init_db() -> None:
 
     if settings.is_postgres:
         with engine.begin() as conn:
-            conn.execute(text("SELECT pg_advisory_lock(:id)"), {"id": INIT_LOCK_ID})
-            try:
-                conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
-                # No HNSW index on purpose: searches are always filtered to one
-                # student's subject (a few thousand chunks at most), so the btree
-                # index on (owner_id, subject_id) + exact cosine scan is fast and
-                # never drops results the way a post-filtered ANN index can.
-                Base.metadata.create_all(bind=conn)
-            finally:
-                conn.execute(text("SELECT pg_advisory_unlock(:id)"), {"id": INIT_LOCK_ID})
+            # Transaction-scoped lock: released only after COMMIT, so a second
+            # worker/instance waits until the DDL below is visible to it.
+            conn.execute(text("SELECT pg_advisory_xact_lock(:id)"), {"id": INIT_LOCK_ID})
+            conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+            # No HNSW index on purpose: searches are always filtered to one
+            # student's subject (a few thousand chunks at most), so the btree
+            # index on (owner_id, subject_id) + exact cosine scan is fast and
+            # never drops results the way a post-filtered ANN index can.
+            Base.metadata.create_all(bind=conn)
     else:
         Base.metadata.create_all(bind=engine)
     _seed_admin()
@@ -81,5 +81,9 @@ def _seed_admin() -> None:
                 role=Role.admin,
             )
         )
-        db.commit()
+        try:
+            db.commit()
+        except IntegrityError:  # another worker seeded it first
+            db.rollback()
+            return
         log.info("Seeded admin account %s", settings.ADMIN_EMAIL)
