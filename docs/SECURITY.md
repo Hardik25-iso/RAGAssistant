@@ -2,7 +2,7 @@
 
 | # | Aspect | Implementation | Evidence |
 |---|---|---|---|
-| 1 | Network isolation | RDS private (`sg-rds` allows 5432 only from `sg-ec2`). EC2 port 80 only from `sg-alb`. ALB only from the CloudFront prefix list, plus a secret-header listener rule. No port 22 (Session Manager instead). | SG screenshots; `curl http://<ALB-DNS>` → 403 |
+| 1 | Network isolation | RDS private (`studyrag-rds` allows 5432 only from `studyrag-ec2`). EC2 port 80 only from `studyrag-alb`. ALB only from the CloudFront prefix list, plus a secret-header listener rule. No port 22 (Session Manager instead). | SG screenshots; `curl http://<ALB-DNS>` → 403 |
 | 2 | Encryption in transit | HTTPS at CloudFront (HTTP→HTTPS redirect, HSTS). S3 bucket policy denies non-TLS requests. RDS `sslmode=require`. Groq/Gemini over HTTPS. | `deploy/aws/s3_bucket_policy.json`, `deploy/nginx/nginx.conf` |
 | 3 | Encryption at rest | S3 SSE-KMS (and a policy that rejects unencrypted PUTs). RDS storage encryption. Encrypted EBS volumes. SSM SecureStrings. | `app/aws/s3_storage.py` (`ServerSideEncryption="aws:kms"`) |
 | 4 | IAM and least privilege | EC2 instance role with no access keys, limited to `users/*` in one bucket, `/studyrag/*` parameters and its own log group. GitHub deploys through OIDC (no stored AWS keys), may only `SendCommand` to instances tagged `App=studyrag`. MFA for humans. | `deploy/aws/*.json` |

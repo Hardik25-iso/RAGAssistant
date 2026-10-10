@@ -38,7 +38,7 @@ load balancing), not Groq's latency.
 ## Experiment 1: throughput and latency
 
 ```bash
-# BEFORE: single instance (sg-ec2 temporarily allows port 80 from your IP)
+# BEFORE: single instance (studyrag-ec2 temporarily allows port 80 from your IP)
 locust -f deploy/loadtest/locustfile.py --host http://<ELASTIC-IP> --headless -u 50 -r 5 -t 5m \
        --csv results/before_50 --only-summary
 
