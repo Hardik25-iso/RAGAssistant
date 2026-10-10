@@ -42,6 +42,10 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str | None = None
     GEMINI_EMBED_MODEL: str = "gemini-embedding-001"
     EMBED_DIM: int = 768
+    # Gemini's free tier counts every text in a batch as one request (~100/min),
+    # so ingestion sends small batches and waits out 429s instead of failing.
+    EMBED_BATCH_SIZE: int = 20
+    EMBED_INGEST_BUDGET_SECONDS: float = 600.0
 
     LLM_PROVIDER: str = "groq"  # groq | gemini | fake
     LLM_FALLBACK_PROVIDER: str | None = "gemini"
