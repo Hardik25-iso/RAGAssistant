@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # One-time setup for an EC2 instance (Ubuntu 24.04). Paste into "User data" when
 # launching, or run as root over SSM Session Manager:
-#   sudo GHCR_OWNER=<github-user-lowercase> REPO_URL=https://github.com/<user>/rag-secure-study-assistant.git \
+#   sudo GHCR_OWNER=<github-user-lowercase> REPO_URL=https://github.com/<user>/RAGAssistant.git \
 #        S3_BUCKET=studyrag-docs-<team> CORS_ORIGINS=https://<your-cloudfront-domain> bash setup_ec2.sh
 set -euo pipefail
 

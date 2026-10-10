@@ -7,7 +7,7 @@
       "Action": "sts:AssumeRoleWithWebIdentity",
       "Condition": {
         "StringEquals": { "token.actions.githubusercontent.com:aud": "sts.amazonaws.com" },
-        "StringLike": { "token.actions.githubusercontent.com:sub": "repo:GITHUB_USER/rag-secure-study-assistant:ref:refs/heads/main" }
+        "StringLike": { "token.actions.githubusercontent.com:sub": "repo:GITHUB_USER/RAGAssistant:environment:production" }
       }
     }
   ]

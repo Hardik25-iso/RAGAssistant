@@ -71,7 +71,7 @@ IAM → Roles → Create → trusted entity **EC2**. Attach:
   log group only. 📸
 
 ## 8. GitHub repository
-1. Push the code to `github.com/<you>/rag-secure-study-assistant` and add teammates as collaborators.
+1. Push the code to `github.com/<you>/RAGAssistant` and add teammates as collaborators.
 2. Settings → Code security: turn on **secret scanning** and **push protection**.
 3. Settings → Branches → protect `main`: require a PR, 1 approval, and passing status checks (CI).
 4. Actions → run **Deploy** once by hand (*Run workflow*). It builds both images and pushes them to GHCR.
@@ -91,9 +91,9 @@ Launch instance:
   ```bash
   #!/bin/bash
   export GHCR_OWNER=<github-username-lowercase>
-  export REPO_URL=https://github.com/<you>/rag-secure-study-assistant.git
+  export REPO_URL=https://github.com/<you>/RAGAssistant.git
   export S3_BUCKET=studyrag-docs-<team>
-  curl -fsSL https://raw.githubusercontent.com/<you>/rag-secure-study-assistant/main/deploy/scripts/setup_ec2.sh | bash
+  curl -fsSL https://raw.githubusercontent.com/<you>/RAGAssistant/main/deploy/scripts/setup_ec2.sh | bash
   ```
 After about 5 minutes, allocate an **Elastic IP**, associate it, and open `http://<EIP>` (your IP is allowed by the
 temporary rule). Register, upload a PPTX, and ask a question. 📸
@@ -138,7 +138,7 @@ Then lock everything down:
 ## 13. CI/CD with GitHub OIDC (no AWS keys in GitHub)
 1. IAM → Identity providers → Add → OpenID Connect: URL `https://token.actions.githubusercontent.com`,
    audience `sts.amazonaws.com`.
-2. IAM → Roles → Create → Custom trust policy: `deploy/aws/github_oidc_trust.json` (replace `ACCOUNT_ID`, `GITHUB_USER`).
+2. IAM → Roles → Create → Custom trust policy: `deploy/aws/github_oidc_trust.json` (replace `ACCOUNT_ID`, `GITHUB_USER`). The deploy job runs in the `production` environment, so GitHub signs its token with `sub = repo:<you>/RAGAssistant:environment:production`; the trust policy matches exactly that.
    Inline policy: `deploy/aws/github_deploy_policy.json`. Name it `StudyRagGithubDeploy`.
 3. GitHub → Settings → Environments → create `production`. Settings → Secrets → Actions → add
    `AWS_DEPLOY_ROLE_ARN` = the role's ARN.
