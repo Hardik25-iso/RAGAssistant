@@ -139,7 +139,7 @@ Then lock everything down:
 ## 13. CI/CD with GitHub OIDC (no AWS keys in GitHub)
 1. IAM → Identity providers → Add → OpenID Connect: URL `https://token.actions.githubusercontent.com`,
    audience `sts.amazonaws.com`.
-2. IAM → Roles → Create → Custom trust policy: `deploy/aws/github_oidc_trust.json` (replace `ACCOUNT_ID`, `GITHUB_USER`). The deploy job runs in the `production` environment, so GitHub signs its token with `sub = repo:<you>/RAGAssistant:environment:production`; the trust policy matches exactly that.
+2. IAM → Roles → Create → Custom trust policy: `deploy/aws/github_oidc_trust.json` (replace `ACCOUNT_ID`, `GITHUB_USER`). The deploy job runs in the `production` environment, so GitHub signs its token with `sub = repo:<you>/RAGAssistant:environment:production`; the trust policy matches exactly that. Newer repos use GitHub's *immutable subject* format (`repo:<you>@<owner-id>/RAGAssistant@<repo-id>:environment:production`); check yours with `gh api repos/<you>/RAGAssistant/actions/oidc/customization/sub` and put the exact IDs in place of the `*` wildcards.
    Inline policy: `deploy/aws/github_deploy_policy.json`. Name it `StudyRagGithubDeploy`.
 3. GitHub → Settings → Environments → create `production`. Settings → Secrets → Actions → add
    `AWS_DEPLOY_ROLE_ARN` = the role's ARN.
