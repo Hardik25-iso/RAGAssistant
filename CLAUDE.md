@@ -28,8 +28,8 @@ DONE and verified in a sandbox:
 
 NOT DONE (next steps, in order):
 1. `git remote add origin` and push to GitHub (public repo). Fill in `.github/CODEOWNERS` handles.
-2. Docker images have **not** been built yet (Docker Hub was blocked in the sandbox). Run `docker compose up --build` locally, or let CI build them, and fix anything that breaks.
-3. Test with real keys locally: put `GROQ_API_KEY` and `GEMINI_API_KEY` in `.env`, upload a real lecture PPTX, and check the answer quality and citations.
+2. ~~Docker build~~ DONE 10 Oct: images build; fixed an init_db race between Gunicorn workers on a fresh DB.
+3. ~~Real keys~~ DONE 10 Oct: real DBMS deck (157 slides) ingested, answers cite correct slides. Gemini free tier rate-limits embeddings (~100 texts/min), so ingestion now uses small batches and waits out 429s (`EMBED_BATCH_SIZE`, `EMBED_INGEST_BUDGET_SECONDS`). A large deck can take 1-2 min to reach `ready`.
 4. AWS deployment: follow `docs/DEPLOYMENT.md` step by step. Run the "before" tests after step 9 and the "after" tests after step 12 (`docs/LOAD_TEST.md`).
 5. Fill the results table in `docs/LOAD_TEST.md` and generate the chart with `deploy/loadtest/compare.py`.
 6. Write the report in the college format (outline is in the roadmap §11; security table in `docs/SECURITY.md`). Collect AWS console screenshots (marked 📸 in DEPLOYMENT.md).
