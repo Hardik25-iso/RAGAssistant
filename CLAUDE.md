@@ -40,7 +40,7 @@ NOT DONE:
    distribution (origin = ALB, header `X-Origin-Verify` = value in the ALB listener rule), remove the temporary
    my-IP rule on `studyrag-alb`, set CORS_ORIGINS on both instances. Fallback if not verified by 14 Oct: open
    `studyrag-alb` to 0.0.0.0/0 on port 80 and serve over plain HTTP.
-2. CloudWatch alarms + SNS email (step 14), branch protection on `main`, CODEOWNERS handles, delete root access key.
+2. CloudWatch alarms + SNS email (step 14), delete root access key. Branch protection: no required approvals (solo committer).
 3. Report + 📸 screenshots. After evaluation: teardown (DEPLOYMENT.md step 16) to stop using credits (~$2/day).
 
 ## Commands
@@ -64,4 +64,4 @@ On Windows, use Git Bash or WSL for the `.sh` scripts. The Python and Node steps
 ## Conventions
 - Every data query is filtered by `owner_id`. Another user's resource returns 404, not 403. Keep this in any new endpoint.
 - Admins see statistics and audit logs only, never document content.
-- Commit prefixes: `feat(rag):`, `feat(aws):`, `fix(api):`, and so on. Each member commits only the files they own (CODEOWNERS).
+- Commit prefixes: `feat(rag):`, `feat(aws):`, `fix(api):`, and so on. Hardik25-iso does all commits (sole CODEOWNER); teammates are collaborators only.
