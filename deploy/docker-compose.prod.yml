@@ -2,13 +2,11 @@
 # Images are built by GitHub Actions and pulled from GHCR; nothing is built on the t3.micro.
 # Secrets are NOT here: the backend reads them from SSM Parameter Store with the instance role.
 # /opt/studyrag/.env (written by setup_ec2.sh) holds only non-secret settings.
-x-logging: &cloudwatch
-  driver: awslogs
-  options:
-    awslogs-region: ${AWS_REGION:-ap-south-1}
-    awslogs-group: /studyrag/app
-    awslogs-create-group: "true"
-    awslogs-stream: "${INSTANCE_ID:-local}-{{.Name}}"
+# One CloudWatch stream per instance and service (awslogs-stream is literal, no templates).
+x-awslogs: &awslogs
+  awslogs-region: ${AWS_REGION:-ap-south-1}
+  awslogs-group: /studyrag/app
+  awslogs-create-group: "true"
 
 services:
   backend:
@@ -26,7 +24,11 @@ services:
       - no-new-privileges:true
     cap_drop: [ALL]
     mem_limit: 700m
-    logging: *cloudwatch
+    logging:
+      driver: awslogs
+      options:
+        <<: *awslogs
+        awslogs-stream: "${INSTANCE_ID:-local}-backend"
 
   web:
     image: ghcr.io/${GHCR_OWNER}/studyrag-web:${IMAGE_TAG:-latest}
@@ -42,4 +44,8 @@ services:
     mem_limit: 128m
     depends_on:
       - backend
-    logging: *cloudwatch
+    logging:
+      driver: awslogs
+      options:
+        <<: *awslogs
+        awslogs-stream: "${INSTANCE_ID:-local}-web"
