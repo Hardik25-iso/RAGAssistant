@@ -2,8 +2,8 @@
 
 | # | Aspect | Implementation | Evidence |
 |---|---|---|---|
-| 1 | Network isolation | RDS private (`studyrag-rds` allows 5432 only from `studyrag-ec2`). EC2 port 80 only from `studyrag-alb`. ALB only from the CloudFront prefix list, plus a secret-header listener rule. No port 22 (Session Manager instead). | SG screenshots; `curl http://<ALB-DNS>` → 403 |
-| 2 | Encryption in transit | HTTPS at CloudFront (HTTP→HTTPS redirect, HSTS). S3 bucket policy denies non-TLS requests. RDS `sslmode=require`. Groq/Gemini over HTTPS. | `deploy/aws/s3_bucket_policy.json`, `deploy/nginx/nginx.conf` |
+| 1 | Network isolation | RDS private (`studyrag-rds` allows 5432 only from `studyrag-ec2`). EC2 port 80 only from `studyrag-alb`, so instances are unreachable directly; the ALB is the only public entry point (port 80). No port 22 (Session Manager instead). | SG screenshots; `curl http://<instance-ip>` times out |
+| 2 | Encryption in transit | S3 bucket policy denies non-TLS requests. RDS `sslmode=require`. Groq/Gemini over HTTPS. | `deploy/aws/s3_bucket_policy.json`, `deploy/nginx/nginx.conf` |
 | 3 | Encryption at rest | S3 SSE-KMS (and a policy that rejects unencrypted PUTs). RDS storage encryption. Encrypted EBS volumes. SSM SecureStrings. | `app/aws/s3_storage.py` (`ServerSideEncryption="aws:kms"`) |
 | 4 | IAM and least privilege | EC2 instance role with no access keys, limited to `users/*` in one bucket, `/studyrag/*` parameters and its own log group. GitHub deploys through OIDC (no stored AWS keys), may only `SendCommand` to instances tagged `App=studyrag`. MFA for humans. | `deploy/aws/*.json` |
 | 5 | Secrets management | All secrets in Parameter Store, loaded at startup (`app/aws/ssm_config.py`). `.env` is gitignored. GitHub secret scanning + push protection. | `.gitignore`, SSM screenshot |
@@ -18,7 +18,7 @@
 | + | Availability and resilience | ALB across 2 AZs with health checks. Rolling zero-downtime deploys. Retries with backoff for AI providers, Groq → Gemini failover, 503 with `Retry-After`. Daily `pg_dump` to S3 plus RDS automated backups. | `docs/LOAD_TEST.md` |
 
 ## Known limitations (state these in the report)
-- CloudFront → ALB traffic is HTTP. It is restricted to CloudFront's IP ranges and needs the secret header, but it is not TLS. Fix: a custom domain with an ACM certificate on the ALB.
+- Browser → ALB traffic is plain HTTP, because CloudFront (free HTTPS) is waiting for AWS account verification and an ALB certificate needs a domain we own. Everything behind the ALB (S3, RDS, AI providers) is encrypted. Fix: CloudFront once approved (the ALB already accepts its prefix list and secret header), or a custom domain with an ACM certificate on the ALB.
 - Rate-limit counters are kept in memory for each instance and worker. Fix: Redis (ElastiCache).
 - Tokens are kept in `sessionStorage`. The strict CSP reduces XSS risk. Fix: httpOnly cookies with CSRF tokens.
 - The prompt-injection guard is pattern-based. The real guarantee is the data isolation enforced by the SQL filter.

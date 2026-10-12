@@ -36,10 +36,11 @@ DONE 10 Oct 2026 (real AWS, account 280793168839, ap-south-1):
 - All before/after experiments run; results in `docs/LOAD_TEST.md` + `docs/results/`. Fixed a threadpool/pool deadlock found at 150 users.
 
 NOT DONE:
-1. CloudFront: blocked until AWS verifies the account (user opened/needs to open a support case). Then create the
-   distribution (origin = ALB, header `X-Origin-Verify` = value in the ALB listener rule), remove the temporary
-   my-IP rule on `studyrag-alb`, set CORS_ORIGINS on both instances. Fallback if not verified by 14 Oct: open
-   `studyrag-alb` to 0.0.0.0/0 on port 80 and serve over plain HTTP.
+1. CloudFront: blocked until AWS verifies the account (support case open). FALLBACK ACTIVE since 12 Oct: `studyrag-alb`
+   allows 0.0.0.0/0:80, listener default action = forward, CORS_ORIGINS = ALB URL on both instances. Live link:
+   http://alb-studyrag-1301669676.ap-south-1.elb.amazonaws.com . When CloudFront is approved: create the distribution
+   (origin = ALB, header `X-Origin-Verify` = value in the ALB listener rule), then remove 0.0.0.0/0, restore the 403
+   default action, set CORS_ORIGINS to the CloudFront URL, update README/SECURITY/report.
 2. CloudWatch alarms + SNS email (step 14), delete root access key. Branch protection: no required approvals (solo committer).
 3. Report + 📸 screenshots. After evaluation: teardown (DEPLOYMENT.md step 16) to stop using credits (~$2/day).
 

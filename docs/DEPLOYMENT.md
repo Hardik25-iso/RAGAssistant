@@ -118,6 +118,11 @@ choose subnet **ap-south-1b**. Check that the role, metadata settings, tag and u
 3. Wait until both targets show **healthy**. 📸
 
 ## 12. CloudFront distribution (HTTPS + deployment link)
+
+> **Fallback used in this deployment:** new AWS accounts must be verified before they can create CloudFront
+> distributions. Until that happens, `studyrag-alb` also allows HTTP 80 from `0.0.0.0/0` and the listener's
+> default action forwards to `tg-studyrag`, so the deployment link is `http://<ALB-DNS>`. When CloudFront is
+> approved: create the distribution below, then remove the `0.0.0.0/0` rule and set the default action back to 403.
 - Origin: the ALB DNS name, protocol **HTTP only**, port 80, response timeout **60 s**.
   Add a custom header `X-Origin-Verify: <same secret>`.
 - Default behavior: viewer protocol **Redirect HTTP to HTTPS**; allowed methods **GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE**;

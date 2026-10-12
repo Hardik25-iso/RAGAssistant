@@ -2,10 +2,11 @@
 
 Students upload their lecture PPTX and PDF files, organise them by subject, and chat with them.
 Every answer cites the exact slide or page (for example `DBMS_Unit2.pptx · Slide 14`). Each student's
-files and chats are private to them. The app runs on AWS behind CloudFront and an Application Load
-Balancer, with two EC2 instances, RDS PostgreSQL + pgvector, S3 (SSE-KMS) and SSM Parameter Store.
+files and chats are private to them. The app runs on AWS behind an Application Load Balancer, with two
+EC2 instances in two Availability Zones, RDS PostgreSQL + pgvector, S3 (SSE-KMS) and SSM Parameter Store.
 
-- **Live app:** `https://<cloudfront-domain>` (API docs: `/api/docs`)
+- **Live app:** http://alb-studyrag-1301669676.ap-south-1.elb.amazonaws.com (API docs: `/api/docs`)
+- HTTPS through CloudFront is prepared but waiting for AWS account verification; until then the ALB serves plain HTTP.
 - **Demo accounts:** Student A `studenta@studyrag.app` / Student B `studentb@studyrag.app` / Admin, with passwords shared with the evaluator
 
 ## Stack
@@ -14,7 +15,7 @@ Balancer, with two EC2 instances, RDS PostgreSQL + pgvector, S3 (SSE-KMS) and SS
 | Frontend | React 18 (Vite), Tailwind CSS, Axios, react-markdown, served by Nginx |
 | Backend | FastAPI, Gunicorn + Uvicorn workers, SQLAlchemy 2 |
 | RAG | PyMuPDF (PDF), python-pptx (slides + speaker notes), ~500-token chunks, Gemini `gemini-embedding-001` (768-d), pgvector cosine search, Groq `openai/gpt-oss-20b` (Gemini as backup) |
-| AWS | CloudFront, ALB, 2× EC2 t3.micro (Docker Compose), RDS PostgreSQL 16, S3, SSM Parameter Store, KMS, CloudWatch, CloudTrail, Budgets |
+| AWS | ALB (CloudFront pending), 2× EC2 t3.micro (Docker Compose), RDS PostgreSQL 16, S3, SSM Parameter Store, KMS, CloudWatch, CloudTrail, Budgets |
 | CI/CD | GitHub Actions: lint + tests (Postgres+pgvector service) → build images → GHCR → rolling deploy through SSM Run Command (OIDC, no stored keys) |
 
 ## Run locally
