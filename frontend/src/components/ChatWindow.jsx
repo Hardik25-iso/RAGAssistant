@@ -7,7 +7,11 @@ export default function ChatWindow({ messages, sending, onSend, disabled }) {
   const [text, setText] = useState("");
   const endRef = useRef(null);
 
-  useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), [messages, sending]);
+  // Block body on purpose: newer browsers return a Promise from scrollIntoView(), and an
+  // effect that returns a non-function makes React crash when it runs the "cleanup".
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, sending]);
 
   const submit = (e) => {
     e?.preventDefault();

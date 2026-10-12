@@ -25,7 +25,10 @@ export default function Chat() {
   }, [subjectId]);
 
   useEffect(() => {
-    if (!sessionId) return setMessages([]);
+    if (!sessionId) {
+      setMessages([]);
+      return;
+    }
     api.get(`/chat/sessions/${sessionId}/messages`).then((r) => setMessages(r.data)).catch(() => setMessages([]));
   }, [sessionId]);
 

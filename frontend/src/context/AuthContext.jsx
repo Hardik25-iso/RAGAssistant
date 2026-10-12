@@ -24,7 +24,9 @@ export function AuthProvider({ children }) {
     navigate("/login", { replace: true });
   }, [navigate]);
 
-  useEffect(() => setLogoutHandler(logout), [logout]);
+  useEffect(() => {
+    setLogoutHandler(logout);
+  }, [logout]);
 
   const saveSession = (data) => {
     tokenStore.set({ access_token: data.access_token, refresh_token: data.refresh_token });
