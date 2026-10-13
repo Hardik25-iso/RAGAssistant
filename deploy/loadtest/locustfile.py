@@ -22,7 +22,7 @@ EMAIL = os.getenv("LT_EMAIL", "loadtest@studyrag.app")
 PASSWORD = os.getenv("LT_PASSWORD", "LoadTest123")
 # For hitting the ALB directly (it only forwards requests carrying the CloudFront secret header):
 #   export LT_HEADER="X-Origin-Verify: <secret>"
-EXTRA = dict([h.split(": ", 1)]) if os.getenv("LT_HEADER") else {}
+EXTRA = dict([os.environ["LT_HEADER"].split(": ", 1)]) if os.getenv("LT_HEADER") else {}
 QUESTIONS = [
     "What is normalization?",
     "Explain first normal form",
