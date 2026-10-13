@@ -77,7 +77,7 @@ IAM → Roles → Create → trusted entity **EC2**. Attach:
 3. Settings → Branches → protect `main`: require a PR, 1 approval, and passing status checks (CI).
 4. Actions → run **Deploy** once by hand (*Run workflow*). It builds both images and pushes them to GHCR.
    The deploy step only warns, because no instances exist yet.
-5. Your profile → Packages → `studyrag-backend` and `studyrag-web` → Package settings → **Change visibility → Public**
+5. Your profile → Packages → `ragassistant-backend` and `ragassistant-web` → Package settings → **Change visibility → Public** (if they are not already public). Images are named after the repo so a recreated repo publishes fresh packages it owns, instead of needing access to packages linked to an older repo
    (the images contain no secrets; this lets EC2 pull them without a token).
 
 ## 9. EC2 instance #1 (this is the "before" setup)

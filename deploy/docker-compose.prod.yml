@@ -10,7 +10,7 @@ x-awslogs: &awslogs
 
 services:
   backend:
-    image: ghcr.io/${GHCR_OWNER}/studyrag-backend:${IMAGE_TAG:-latest}
+    image: ghcr.io/${GHCR_OWNER}/ragassistant-backend:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file: /opt/studyrag/.env
     environment:
@@ -31,7 +31,7 @@ services:
         awslogs-stream: "${INSTANCE_ID:-local}-backend"
 
   web:
-    image: ghcr.io/${GHCR_OWNER}/studyrag-web:${IMAGE_TAG:-latest}
+    image: ghcr.io/${GHCR_OWNER}/ragassistant-web:${IMAGE_TAG:-latest}
     restart: unless-stopped
     ports:
       - "80:8080"

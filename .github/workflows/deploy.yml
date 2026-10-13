@@ -45,13 +45,13 @@ jobs:
 
       - name: Build and push backend
         run: |
-          IMG=ghcr.io/${{ steps.img.outputs.owner }}/studyrag-backend
+          IMG=ghcr.io/${{ steps.img.outputs.owner }}/ragassistant-backend
           docker build -t $IMG:${{ steps.img.outputs.tag }} -t $IMG:latest ./backend
           docker push --all-tags $IMG
 
       - name: Build and push web
         run: |
-          IMG=ghcr.io/${{ steps.img.outputs.owner }}/studyrag-web
+          IMG=ghcr.io/${{ steps.img.outputs.owner }}/ragassistant-web
           docker build -t $IMG:${{ steps.img.outputs.tag }} -t $IMG:latest -f frontend/Dockerfile .
           docker push --all-tags $IMG
 
