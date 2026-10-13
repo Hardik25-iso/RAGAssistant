@@ -23,7 +23,7 @@ export function AuthLayout({ title, subtitle, children }) {
             <li>· Your files are private to you, encrypted on AWS</li>
           </ul>
         </div>
-        <p className="font-mono text-xs text-white/50">DBMS_Unit2.pptx · Slide 14</p>
+        <div aria-hidden="true" />
       </aside>
       <main className="flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
